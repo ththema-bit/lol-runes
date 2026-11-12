@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="de"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Runen-Simulator · LoL</title>
+<link rel="stylesheet" href="ui/ui-kit.css">
+<style>
+:root{--tc:#c8aa6e;--tc2:#c8aa6e}
+body{min-height:100vh}
+.top{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;margin-bottom:16px}
+.top .sp{flex:1}
+.seg{display:inline-flex;border:1px solid var(--line)}
+.seg button{border:0;border-right:1px solid var(--line);padding:6px 10px}
+.seg button:last-child{border-right:0}
+.seg button.on{background:var(--amber);color:#131518}
+#q{background:var(--panel);border:1px solid var(--line);color:var(--txt);font:13px var(--f-body);padding:7px 10px;width:220px;border-radius:0}
+.layout{display:grid;grid-template-columns:minmax(300px,1fr) minmax(300px,1fr) minmax(320px,1.1fr);gap:10px;align-items:start}
+.col{background:var(--panel);border:1px solid var(--line);border-top:3px solid var(--tc);padding:14px 14px 18px}
+#sec{border-top-color:var(--tc2)}
+.colh{font:700 13px var(--f-head);letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin-bottom:10px;display:flex;justify-content:space-between}
+.trees{display:flex;gap:6px;margin-bottom:14px}
+.tree{flex:1;background:var(--panel2);border:1px solid var(--line);padding:6px 0 4px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;font:500 12px var(--f-head);letter-spacing:.06em;text-transform:uppercase;color:var(--dim)}
+.tree img{width:26px;height:26px;opacity:.45;filter:grayscale(1)}
+.tree.on{border-color:var(--c);color:var(--txt)}
+.tree.on img{opacity:1;filter:none}
+.tree.dis{opacity:.25;cursor:not-allowed}
+.tname{font:700 26px var(--f-head);text-transform:uppercase;letter-spacing:.04em;color:var(--tc);margin:2px 0 2px}
+#sec .tname{color:var(--tc2)}
+.tsub{font-size:12px;color:var(--dim);margin-bottom:12px;min-height:1.4em}
+.row{display:flex;justify-content:space-around;align-items:center;padding:10px 0;border-top:1px solid var(--line)}
+.row.key{padding:12px 0 14px}
+.rune{background:none;border:0;padding:0;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;width:84px}
+.rune .ic{width:46px;height:46px;border:1px solid var(--line);border-radius:50%;display:grid;place-items:center;background:#111316}
+.rune img{width:38px;height:38px;filter:grayscale(1) brightness(.6)}
+.row.key .rune .ic{width:64px;height:64px;border:0;background:none}
+.row.key .rune img{width:62px;height:62px}
+.rune .nm{font:500 12px/1.1 var(--f-head);letter-spacing:.03em;color:var(--dim);text-align:center;min-height:2.2em}
+.rune.on .ic{border-color:var(--tc);border-width:2px}
+#sec .rune.on .ic{border-color:var(--tc2)}
+.rune.on img{filter:none}
+.rune.on .nm{color:var(--txt)}
+.rune:hover img,.rune.cur img{filter:none}
+.rune.cur .nm{color:var(--amber)}
+.rune.hit .ic{outline:2px dashed var(--amber);outline-offset:2px}
+.shards{margin-top:16px;border-top:1px solid var(--line);padding-top:10px}
+.srow{display:flex;align-items:center;gap:10px;padding:5px 0}
+.srow .lb{font:500 12px var(--f-head);letter-spacing:.1em;text-transform:uppercase;color:var(--dim);width:74px}
+.shard{width:34px;height:34px;border-radius:50%;border:1px solid var(--line);background:#111316;padding:0;cursor:pointer;display:grid;place-items:center}
+.shard img{width:24px;height:24px;filter:grayscale(1) brightness(.6)}
+.shard.on{border-color:var(--amber);border-width:2px}
+.shard.on img,.shard:hover img{filter:none}
+#detail{position:sticky;top:12px}
+#detail .dh{display:flex;gap:12px;align-items:center;margin-bottom:10px}
+#detail .dh img{width:52px;height:52px}
+#detail .dn{font:700 24px/1 var(--f-head);text-transform:uppercase;letter-spacing:.03em}
+#detail .dt{font-size:12px;color:var(--dim);margin-top:4px}
+#dbody{font-size:13.5px;line-height:1.55;color:var(--txt)}
+#dbody i{color:var(--dim)}
+#dbody .kw{color:#7fc4c9;border-bottom:1px dotted #4f8a8e}
+#dbody .short{border-left:3px solid var(--tc);padding:6px 10px;background:var(--panel2);margin-bottom:12px}
+.sumcol{margin-top:10px;border-top-color:var(--line)}
+.closeb{display:none}
+.sum h3{font:700 13px var(--f-head);letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin:0 0 8px}
+.si{display:flex;gap:8px;align-items:flex-start;padding:5px 0;border-bottom:1px solid #23272c;cursor:pointer;font-size:12.5px}
+.si img{width:24px;height:24px;flex:none}
+.si b{font:600 12.5px var(--f-body);color:var(--txt)}
+.si span{color:var(--dim)}
+.acts{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.foot{margin-top:22px;font-size:11.5px;color:var(--dim);line-height:1.6}
+@media (max-width:1100px){.layout{grid-template-columns:1fr 1fr}#detailWrap{grid-column:1/-1}#detail{position:static}}
+@media (max-width:720px){
+ .layout{grid-template-columns:1fr}
+ .rune{width:70px}.row.key .rune img{width:52px;height:52px}.row.key .rune .ic{width:54px;height:54px}
+ #q{width:100%}
+ #detailWrap{display:contents}
+ #detail{display:none;position:fixed;left:0;right:0;bottom:0;z-index:5;max-height:46vh;overflow:auto;margin:0;box-shadow:0 -8px 24px rgba(0,0,0,.6)}
+ #detail.open{display:block}
+ .closeb{display:block;position:absolute;top:10px;right:10px;padding:5px 10px}
+ .sumcol{margin-top:0}
+ body.sheet .lx-wrap{padding-bottom:48vh}
+}
+</style></head>
+<body><div class="lx-wrap">
+<header class="lx-head"><h1>Runen-Simulator<span class="lx-sub" id="ver">League of Legends · Runen-Seite wie im Client</span></h1></header>
+<div class="top">
+ <div class="seg" id="lang"><button data-l="de_DE" class="on">DE</button><button data-l="en_US">EN</button></div>
+ <input id="q" placeholder="Rune suchen…" autocomplete="off">
+ <span class="sp"></span>
+ <select id="presets"><option value="">Gespeicherte Seiten…</option></select>
+</div>
+<div class="layout">
+ <section class="col" id="pri"></section>
+ <section class="col" id="sec"></section>
+ <div id="detailWrap"><section class="col" id="detail">
+  <div class="dh"><img id="dimg" alt=""><div><div class="dn" id="dname">Rune wählen</div><div class="dt" id="dtype"></div></div></div>
+  <button id="close" class="closeb">Schließen</button>
+  <div id="dbody"><span class="lx-dim">Fahr mit der Maus über eine Rune oder tipp sie an, dann steht hier die komplette Beschreibung.</span></div>
+ </section>
+ <section class="col sumcol">
+  <div class="sum"><h3>Deine Seite</h3><div id="sumList"></div>
+   <div class="acts"><button id="save">Seite speichern</button><button id="del">Löschen</button><button id="link">Link kopieren</button><button id="reset">Leeren</button></div>
+  </div>
+ </section></div>
+</div>
+<p class="foot">Daten und Icons: Riot Data Dragon (offizielle Daten, Patch <span id="ver2"></span>). Werte der Stat-Shards sind von Hand gepflegt (Stand Saison 2024+). Aktualisieren: <code>python3 tools/fetch_data.py</code>.<br>Runen-Simulator isn't endorsed by Riot Games and doesn't reflect the views or opinions of Riot Games or anyone officially involved in producing or managing Riot Games properties. Riot Games, and all associated properties are trademarks or registered trademarks of Riot Games, Inc.</p>
+</div>
+<script>
+const COLORS={8000:'#c8aa6e',8100:'#d44242',8200:'#9faafc',8400:'#a1d586',8300:'#49aab9'};
+const T={de_DE:{pri:'Primär',sec:'Sekundär',key:'Schlüsselstein',slot:'Reihe',pick2:'2 Runen aus verschiedenen Reihen',shards:'Werte',off:'Offensiv',flex:'Flexibel',def:'Defensiv',choose:'Pfad wählen',empty:'Noch nichts gewählt.',saveQ:'Name der Seite:',copied:'Link kopiert',hint:'Fahr mit der Maus über eine Rune oder tipp sie an, dann steht hier die komplette Beschreibung.',stat:'Stat-Shard'},
+ en_US:{pri:'Primary',sec:'Secondary',key:'Keystone',slot:'Row',pick2:'2 runes from different rows',shards:'Stats',off:'Offense',flex:'Flex',def:'Defense',choose:'Choose a path',empty:'Nothing picked yet.',saveQ:'Page name:',copied:'Link copied',hint:'Hover or tap a rune to see its full description here.',stat:'Stat shard'}};
+const SH={AF:['StatModsAdaptiveForceIcon',{de_DE:['Adaptive Kraft','+9 adaptive Kraft (5,4 Angriffsschaden oder 9 Fähigkeitsstärke, je nachdem was du mehr hast).'],en_US:['Adaptive Force','+9 Adaptive Force (5.4 attack damage or 9 ability power, whichever you have more of).']}],
+ AS:['StatModsAttackSpeedIcon',{de_DE:['Angriffstempo','+10 % Angriffstempo.'],en_US:['Attack Speed','+10% attack speed.']}],
+ AH:['StatModsCDRScalingIcon',{de_DE:['Fähigkeitstempo','+8 Fähigkeitstempo.'],en_US:['Ability Haste','+8 ability haste.']}],
+ MS:['StatModsMovementSpeedIcon',{de_DE:['Lauftempo','+2 % Lauftempo.'],en_US:['Move Speed','+2% move speed.']}],
+ HS:['StatModsHealthScalingIcon',{de_DE:['Skalierendes Leben','+10–180 Leben (steigt mit dem Level).'],en_US:['Health Scaling','+10–180 health (scales with level).']}],
+ HP:['StatModsHealthPlusIcon',{de_DE:['Leben','+65 Leben.'],en_US:['Health','+65 health.']}],
+ TN:['StatModsTenacityIcon',{de_DE:['Zähigkeit & Verlangsamungsresistenz','+15 % Zähigkeit und Verlangsamungsresistenz.'],en_US:['Tenacity & Slow Resist','+15% tenacity and slow resist.']}]};
+const SHROWS=[['off',['AF','AS','AH']],['flex',['AF','MS','HS']],['def',['HP','TN','HS']]];
+let lang=localStorage.getItem('rs_lang')||'de_DE',DATA={},trees=[],byId={};
+let S={p:8000,k:null,pr:[null,null,null],s:8100,sr:[],sh:['AF','AF','HP']};
+let cur=null;
+const $=s=>document.querySelector(s);
+const img=p=>'img/'+p;
+function clean(html){const d=new DOMParser().parseFromString('<div>'+html+'</div>','text/html').body.firstChild;
+ const out=document.createElement('div');
+ (function walk(src,dst){for(const n of [...src.childNodes]){if(n.nodeType===3){dst.appendChild(document.createTextNode(n.textContent));continue}
+  if(n.nodeType!==1)continue;const t=n.tagName.toLowerCase();let e=null;
+  if(t==='br'){dst.appendChild(document.createElement('br'));continue}
+  if(t==='hr'){dst.appendChild(document.createElement('br'));continue}
+  if(t==='b'||t==='i'||t==='li'){e=document.createElement(t==='li'?'div':t)}
+  else if(t==='font'){e=document.createElement('span');const c=n.getAttribute('color');if(/^#[0-9a-f]{3,8}$/i.test(c||''))e.style.color=c}
+  else if(t.startsWith('lol-uikit-tooltipped-keyword')){e=document.createElement('span');e.className='kw'}
+  if(e){walk(n,e);dst.appendChild(e)}else walk(n,dst)}})(d,out);
+ return out}
+async function load(l){if(!DATA[l]){DATA[l]=await (await fetch('data/runes_'+l+'.json')).json()}
+ const d=DATA[l];trees=[8000,8100,8200,8400,8300].map(id=>d.trees.find(t=>t.id===id)).filter(Boolean);
+ for(const t of d.trees)if(!trees.includes(t))trees.push(t);
+ byId={};for(const t of trees){byId[t.id]={kind:'tree',t};t.slots.forEach((s,i)=>s.runes.forEach(r=>byId[r.id]={kind:'rune',r,t,row:i}))}
+ $('#ver').textContent='League of Legends · Patch '+d.version;$('#ver2').textContent=d.version;
+ document.documentElement.lang=l.slice(0,2)}
+function treeBtns(sel,dis,fn){const w=document.createElement('div');w.className='trees';
+ for(const t of trees){const b=document.createElement('button');b.className='tree'+(t.id===sel?' on':'')+(t.id===dis?' dis':'');b.style.setProperty('--c',COLORS[t.id]||'#c8aa6e');
+  b.innerHTML='<img alt="" src="'+img(t.icon)+'"><span></span>';b.querySelector('span').textContent=t.name;
+  if(t.id!==dis)b.onclick=()=>fn(t.id);w.appendChild(b)}return w}
+function runeBtn(r,on,fn){const b=document.createElement('button');b.className='rune'+(on?' on':'')+(cur===r.id?' cur':'');b.dataset.id=r.id;
+ b.innerHTML='<span class="ic"><img alt="" src="'+img(r.icon)+'"></span><span class="nm"></span>';b.querySelector('.nm').textContent=r.name;
+ b.onmouseenter=()=>show(r.id,false);b.onfocus=()=>show(r.id,false);b.onclick=()=>{fn();show(r.id,true)};return b}
+function render(){const L=T[lang];
+ document.documentElement.style.setProperty('--tc',COLORS[S.p]);document.documentElement.style.setProperty('--tc2',COLORS[S.s]);
+ const P=$('#pri'),Q=$('#sec');P.innerHTML='';Q.innerHTML='';
+ const pt=trees.find(t=>t.id===S.p),st=trees.find(t=>t.id===S.s);
+ P.insertAdjacentHTML('beforeend','<div class="colh"><span>'+L.pri+'</span></div>');
+ P.appendChild(treeBtns(S.p,null,id=>{if(id===S.p)return;if(id===S.s){S.s=S.p;S.sr=[]}S.p=id;S.k=null;S.pr=[null,null,null];commit()}));
+ const n1=document.createElement('div');n1.className='tname';n1.textContent=pt.name;P.appendChild(n1);
+ P.insertAdjacentHTML('beforeend','<div class="tsub">'+L.key+' + 3 '+L.slot+'n</div>'.replace(L.slot+'n',lang==='de_DE'?'Reihen':'rows'));
+ pt.slots.forEach((s,i)=>{const row=document.createElement('div');row.className='row'+(i===0?' key':'');
+  s.runes.forEach(r=>{const on=i===0?S.k===r.id:S.pr[i-1]===r.id;row.appendChild(runeBtn(r,on,()=>{if(i===0)S.k=on?null:r.id;else S.pr[i-1]=on?null:r.id;commit()}))});P.appendChild(row)});
+ // shards
+ const sh=document.createElement('div');sh.className='shards';
+ SHROWS.forEach(([lb,ids],ri)=>{const row=document.createElement('div');row.className='srow';row.innerHTML='<span class="lb">'+L[lb]+'</span>';
+  ids.forEach(id=>{const b=document.createElement('button');b.className='shard'+(S.sh[ri]===id?' on':'');b.title=SH[id][1][lang][0];
+   b.innerHTML='<img alt="" src="'+img('perk-images/StatMods/'+SH[id][0]+'.png')+'">';
+   b.onmouseenter=()=>show('sh:'+id,false);b.onclick=()=>{S.sh[ri]=id;commit();show('sh:'+id,true)};row.appendChild(b)});sh.appendChild(row)});
+ // secondary
+ Q.insertAdjacentHTML('beforeend','<div class="colh"><span>'+L.sec+'</span></div>');
+ Q.appendChild(treeBtns(S.s,S.p,id=>{if(id===S.s)return;S.s=id;S.sr=[];commit()}));
+ const n2=document.createElement('div');n2.className='tname';n2.textContent=st.name;Q.appendChild(n2);
+ Q.insertAdjacentHTML('beforeend','<div class="tsub">'+L.pick2+'</div>');
+ st.slots.slice(1).forEach((s,i)=>{const row=document.createElement('div');row.className='row';
+  s.runes.forEach(r=>{const on=S.sr.includes(r.id);row.appendChild(runeBtn(r,on,()=>{
+   if(on){S.sr=S.sr.filter(x=>x!==r.id)}else{S.sr=S.sr.filter(x=>byId[x].row!==i+1);S.sr.push(r.id);if(S.sr.length>2)S.sr.shift()}commit()}))});Q.appendChild(row)});
+ Q.appendChild(sh);
+ summary();search()}
+function summary(){const L=T[lang],w=$('#sumList');w.innerHTML='';
+ const ids=[S.k,...S.pr,...S.sr].filter(Boolean);
+ if(!ids.length){w.innerHTML='<span class="lx-dim" style="font-size:12.5px">'+L.empty+'</span>'}
+ for(const id of ids){const r=byId[id].r;add(img(r.icon),r.name,clean(r.shortDesc).textContent,id)}
+ S.sh.forEach(id=>add(img('perk-images/StatMods/'+SH[id][0]+'.png'),SH[id][1][lang][0],SH[id][1][lang][1],'sh:'+id));
+ function add(src,name,txt,id){const d=document.createElement('div');d.className='si';d.innerHTML='<img alt=""><div><b></b> <span></span></div>';
+  d.querySelector('img').src=src;d.querySelector('b').textContent=name;d.querySelector('span').textContent=txt;d.onclick=()=>show(id,true);w.appendChild(d)}}
+function show(id,pin){if(!pin&&matchMedia('(hover:none)').matches)return;cur=id;$('#detail').classList.add('open');document.body.classList.add('sheet');const L=T[lang];const body=$('#dbody');body.innerHTML='';
+ document.querySelectorAll('.rune.cur').forEach(e=>e.classList.remove('cur'));
+ if(typeof id==='string'&&id.startsWith('sh:')){const s=SH[id.slice(3)];$('#dimg').src=img('perk-images/StatMods/'+s[0]+'.png');$('#dname').textContent=s[1][lang][0];$('#dtype').textContent=L.stat;
+  const p=document.createElement('div');p.textContent=s[1][lang][1];body.appendChild(p);return}
+ const e=byId[id];if(!e)return;const r=e.r;
+ document.querySelectorAll('.rune[data-id="'+id+'"]').forEach(b=>b.classList.add('cur'));
+ $('#dimg').src=img(r.icon);$('#dname').textContent=r.name;$('#dtype').textContent=e.t.name+' · '+(e.row===0?L.key:L.slot+' '+e.row);
+ $('#detail').style.borderTopColor=COLORS[e.t.id];
+ const sd=clean(r.shortDesc);sd.className='short';sd.style.borderLeftColor=COLORS[e.t.id];body.appendChild(sd);body.appendChild(clean(r.longDesc))}
+function search(){const q=$('#q').value.trim().toLowerCase();document.querySelectorAll('.rune').forEach(b=>{const r=byId[b.dataset.id].r;
+ b.classList.toggle('hit',!!q&&(r.name.toLowerCase().includes(q)||clean(r.longDesc).textContent.toLowerCase().includes(q)))})}
+function jump(){const q=$('#q').value.trim().toLowerCase();if(!q)return;
+ const hit=Object.values(byId).find(e=>e.kind==='rune'&&e.r.name.toLowerCase().includes(q));if(!hit)return;
+ if(hit.t.id!==S.p&&hit.t.id!==S.s){if(hit.row===0){S.p=hit.t.id;S.k=null;S.pr=[null,null,null];if(S.s===S.p){S.s=trees.find(t=>t.id!==S.p).id;S.sr=[]}}else{if(hit.t.id===S.p)return;S.s=hit.t.id;S.sr=[]}commit()}
+ show(hit.r.id,true)}
+function enc(){return [S.p,S.k||0,...S.pr.map(x=>x||0),S.s,...[0,1].map(i=>S.sr[i]||0),...S.sh].join('.')}
+function dec(h){const a=h.split('.');if(a.length<12)return;const n=x=>+x||null;
+ const st={p:+a[0],k:n(a[1]),pr:[n(a[2]),n(a[3]),n(a[4])],s:+a[5],sr:[n(a[6]),n(a[7])].filter(Boolean),sh:a.slice(8,11)};
+ if(!trees.find(t=>t.id===st.p)||!trees.find(t=>t.id===st.s)||st.p===st.s)return;
+ if(!st.sh.every((x,i)=>SHROWS[i][1].includes(x)))st.sh=['AF','AF','HP'];S=st}
+function commit(){history.replaceState(null,'','#'+enc());localStorage.setItem('rs_last',enc());render()}
+function presets(){const p=JSON.parse(localStorage.getItem('rs_presets')||'{}'),s=$('#presets');s.innerHTML='<option value="">'+(lang==='de_DE'?'Gespeicherte Seiten…':'Saved pages…')+'</option>';
+ for(const k of Object.keys(p).sort()){const o=document.createElement('option');o.value=k;o.textContent=k;s.appendChild(o)}}
+$('#presets').onchange=e=>{const p=JSON.parse(localStorage.getItem('rs_presets')||'{}');if(p[e.target.value]){dec(p[e.target.value]);commit()}};
+$('#save').onclick=()=>{const n=prompt(T[lang].saveQ,$('#presets').value||'');if(!n)return;const p=JSON.parse(localStorage.getItem('rs_presets')||'{}');p[n]=enc();localStorage.setItem('rs_presets',JSON.stringify(p));presets();$('#presets').value=n};
+$('#del').onclick=()=>{const n=$('#presets').value;if(!n)return;const p=JSON.parse(localStorage.getItem('rs_presets')||'{}');delete p[n];localStorage.setItem('rs_presets',JSON.stringify(p));presets()};
+$('#link').onclick=()=>{navigator.clipboard?.writeText(location.href).then(()=>{$('#link').textContent=T[lang].copied;setTimeout(()=>$('#link').textContent=lang==='de_DE'?'Link kopieren':'Copy link',1500)})};
+$('#reset').onclick=()=>{S={p:S.p,k:null,pr:[null,null,null],s:S.s,sr:[],sh:['AF','AF','HP']};commit()};
+$('#close').onclick=()=>{$('#detail').classList.remove('open');document.body.classList.remove('sheet')};
+$('#q').oninput=search;$('#q').onkeydown=e=>{if(e.key==='Enter')jump()};
+function labels(){const de=lang==='de_DE';$('#q').placeholder=de?'Rune suchen… (Enter springt hin)':'Search rune… (Enter jumps)';
+ $('#save').textContent=de?'Seite speichern':'Save page';$('#del').textContent=de?'Löschen':'Delete';$('#link').textContent=de?'Link kopieren':'Copy link';$('#reset').textContent=de?'Leeren':'Clear';$('#close').textContent=de?'Schließen':'Close';
+ document.querySelector('.sum h3').textContent=de?'Deine Seite':'Your page';
+ document.querySelectorAll('#lang button').forEach(b=>b.classList.toggle('on',b.dataset.l===lang))}
+document.querySelectorAll('#lang button').forEach(b=>b.onclick=async()=>{lang=b.dataset.l;localStorage.setItem('rs_lang',lang);await load(lang);labels();presets();render();
+ const wasOpen=$('#detail').classList.contains('open')||!matchMedia('(max-width:720px)').matches;if(cur&&wasOpen)show(cur,true);else if(!cur){$('#dbody').innerHTML='';$('#dbody').textContent=T[lang].hint}});
+(async()=>{await load(lang);dec(location.hash.slice(1)||localStorage.getItem('rs_last')||'');labels();presets();render()})();
+window.RS={state:()=>JSON.parse(JSON.stringify(S)),show,enc};
+</script></body></html>
